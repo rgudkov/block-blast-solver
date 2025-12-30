@@ -9,6 +9,7 @@ const previewPanel = document.getElementById('previewPanel');
 const resultsPanel = document.getElementById('resultsPanel');
 const resultGrid = document.getElementById('resultGrid');
 const uploadText = document.getElementById('uploadText');
+const toggleResults = document.getElementById('toggleResults');
 
 let currentImage = null;
 let isProcessing = false;
@@ -16,6 +17,14 @@ let isProcessing = false;
 // Event Listeners
 fileInput.addEventListener('click', () => fileInput.value = '');
 fileInput.addEventListener('change', handleFileSelect);
+
+toggleResults.addEventListener('change', (e) => {
+    if (e.target.checked) {
+        resultsPanel.classList.remove('hidden-toggle');
+    } else {
+        resultsPanel.classList.add('hidden-toggle');
+    }
+});
 
 /**
  * FILE HANDLING
@@ -44,7 +53,7 @@ function handleFileSelect(e) {
 
 function setupCanvas(img) {
     currentImage = img;
-    const DisplayMaxW = window.innerWidth > 600 ? 600 : window.innerWidth - 48;
+    const DisplayMaxW = window.innerWidth > 600 ? 600 : window.innerWidth;
     const scale = Math.min(1, DisplayMaxW / img.width);
 
     sourceCanvas.width = img.width * scale;
