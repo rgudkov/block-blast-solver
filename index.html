@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Block Blast Solver</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1a1a1a">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <header>
+            <div class="header-title">
+                <h1>Block Blast Solver</h1>
+                <p>Strategic Placement Guide</p>
+            </div>
+            <div class="header-action">
+
+                <input type="file" id="fileInput" accept=".jpg,.jpeg,.png,.webp,image/png,image/jpeg,image/webp"
+                    disabled>
+                <label for="fileInput" class="upload-btn" id="uploadLabel" style="opacity: 0.6; cursor: wait;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z">
+                        </path>
+                        <circle cx="12" cy="13" r="4"></circle>
+                    </svg>
+                    <span id="uploadText">Initializing...</span>
+                </label>
+            </div>
+        </header>
+
+        <main>
+            <!-- File input now in header -->
+
+            <div class="main-content">
+                <!-- Left Panel: Source -->
+                <div class="panel hidden" id="previewPanel">
+                    <div class="panel-header">
+                        <h2>Scanned Image</h2>
+                    </div>
+                    <div class="panel-content">
+                        <div class="canvas-wrapper">
+                            <canvas id="sourceCanvas"></canvas>
+                            <div class="grid-overlay" id="gridOverlay"></div>
+                        </div>
+
+                        <!-- NEW: Figure Images Area (No header) for Source side -->
+                        <div class="figures-section hidden" id="figuresImagesSection"
+                            style="border:none; margin-top:16px; padding-top:0;">
+                            <div class="figures-container" id="figuresImagesContainer">
+                                <!-- Images of figures go here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Panel: Results -->
+                <div class="panel hidden" id="resultsPanel">
+                    <div class="panel-header">
+                        <h2>Parsed Grid</h2>
+                    </div>
+                    <div class="panel-content">
+                        <div class="mini-grid" id="resultGrid">
+                            <!-- 8x8 grid will be generated here -->
+                        </div>
+
+                        <!-- Figures Parsed Grid Area (No header) for Results side -->
+                        <div class="figures-section hidden" id="figuresSection"
+                            style="border:none; margin-top:16px; padding-top:0;">
+                            <div class="figures-container" id="figuresContainer">
+                                <!-- Parsed 3x3 grids go here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Suggestions Panel -->
+                <div class="panel hidden" id="suggestionsPanel">
+                    <div class="panel-header">
+                        <h2>Suggested Strategy</h2>
+                    </div>
+                    <div class="panel-content">
+                        <div id="suggestionsList" class="suggestions-list">
+                            <!-- Suggestions will be injected here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="cvLoading" style="display:none;"></div>
+
+    <script src="https://docs.opencv.org/4.8.0/opencv.js" async onload="
+        document.getElementById('fileInput').disabled = false;
+        document.getElementById('uploadText').textContent = 'Scan Image';
+        document.getElementById('uploadLabel').style.opacity = '1';
+        document.getElementById('uploadLabel').style.cursor = 'pointer';
+        window.opencvLoaded = true;
+    "></script>
+    <script src="app.js"></script>
+    <script>
+        // Only register SW if on HTTP/HTTPS
+        if (window.location.protocol.startsWith('http')) {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('SW registered'))
+                    .catch(err => console.log('SW failed', err));
+            }
+        }
+    </script>
+</body>
+
+</html>

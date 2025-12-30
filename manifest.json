@@ -1,0 +1,16 @@
+{
+    "name": "Block Blast Solver",
+    "short_name": "BlockSolver",
+    "start_url": "./index.html",
+    "display": "standalone",
+    "background_color": "#0f1115",
+    "theme_color": "#1a1a1a",
+    "orientation": "portrait",
+    "icons": [
+        {
+            "src": "https://cdn-icons-png.flaticon.com/512/3798/3798305.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
