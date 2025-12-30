@@ -21,13 +21,6 @@
                 <p>Strategic Placement Guide</p>
             </div>
             <div class="header-action">
-                <div class="toggle-wrapper">
-                    <label class="switch">
-                        <input type="checkbox" id="toggleResults">
-                        <span class="slider round"></span>
-                    </label>
-                    <span class="toggle-label">Show Grid</span>
-                </div>
 
                 <input type="file" id="fileInput" accept=".jpg,.jpeg,.png,.webp,image/png,image/jpeg,image/webp"
                     disabled>
@@ -64,37 +57,37 @@
                         <h2>Scanned Image</h2>
                     </div>
                     <div class="panel-content">
-                        <div class="canvas-wrapper">
-                            <canvas id="sourceCanvas"></canvas>
-                            <div class="grid-overlay" id="gridOverlay"></div>
-                        </div>
-
-                        <!-- NEW: Figure Images Area (No header) for Source side -->
+                        <!-- Figure Images Area ABOVE the scanned grid -->
                         <div class="figures-section hidden" id="figuresImagesSection"
-                            style="border:none; margin-top:16px; padding-top:0;">
+                            style="border:none; margin-bottom:16px; width:100%;">
                             <div class="figures-container" id="figuresImagesContainer">
                                 <!-- Images of figures go here -->
                             </div>
                         </div>
+
+                        <div class="canvas-wrapper">
+                            <canvas id="sourceCanvas"></canvas>
+                            <div class="grid-overlay" id="gridOverlay"></div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Right Panel: Results (Hidden by default toggle) -->
-                <div class="panel hidden hidden-toggle" id="resultsPanel">
+                <!-- Right Panel: Results (Always visible when processed) -->
+                <div class="panel hidden" id="resultsPanel">
                     <div class="panel-header">
                         <h2>Parsed Grid</h2>
                     </div>
                     <div class="panel-content">
-                        <div class="mini-grid" id="resultGrid">
-                            <!-- 8x8 grid will be generated here -->
-                        </div>
-
-                        <!-- Figures Parsed Grid Area (No header) for Results side -->
+                        <!-- Figures Parsed Grid Area ABOVE the 8x8 grid -->
                         <div class="figures-section hidden" id="figuresSection"
-                            style="border:none; margin-top:16px; padding-top:0;">
+                            style="border:none; margin-bottom:16px; width:100%;">
                             <div class="figures-container" id="figuresContainer">
                                 <!-- Parsed 3x3 grids go here -->
                             </div>
+                        </div>
+
+                        <div class="mini-grid" id="resultGrid">
+                            <!-- 8x8 grid will be generated here -->
                         </div>
                     </div>
                 </div>

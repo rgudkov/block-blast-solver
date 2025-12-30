@@ -9,7 +9,6 @@ const previewPanel = document.getElementById('previewPanel');
 const resultsPanel = document.getElementById('resultsPanel');
 const resultGrid = document.getElementById('resultGrid');
 const uploadText = document.getElementById('uploadText');
-const toggleResults = document.getElementById('toggleResults');
 
 let currentImage = null;
 let isProcessing = false;
@@ -17,14 +16,6 @@ let isProcessing = false;
 // Event Listeners
 fileInput.addEventListener('click', () => fileInput.value = '');
 fileInput.addEventListener('change', handleFileSelect);
-
-toggleResults.addEventListener('change', (e) => {
-    if (e.target.checked) {
-        resultsPanel.classList.remove('hidden-toggle');
-    } else {
-        resultsPanel.classList.add('hidden-toggle');
-    }
-});
 
 /**
  * FILE HANDLING
@@ -75,6 +66,9 @@ function resetAppUI() {
     previewPanel.classList.add('hidden');
     resultsPanel.classList.add('hidden');
     resultGrid.innerHTML = '';
+    const overlay = document.getElementById('gridOverlay');
+    if (overlay) overlay.innerHTML = '';
+
 
     const elementsToHide = ['figuresSection', 'figuresImagesSection', 'suggestionsPanel'];
     elementsToHide.forEach(id => {
@@ -261,10 +255,20 @@ function analyzeGrid(mat) {
 
 function detectFigures(src, boardRect, graySrc) {
     const yStart = boardRect.y + boardRect.height + 10;
-    let yEnd = src.rows - 120;
+    // Lower adaptive margin for mobile UI (15% of total height)
+    let yEnd = src.rows - Math.floor(src.rows * 0.15);
+
+    if (yStart >= yEnd) {
+        if (src.rows - yStart > 40) yEnd = src.rows - 5;
+        else return [];
+    }
+
+    // Use a fresh, non-blurred grayscale for better edge preservation on figures
+    const cleanGray = new cv.Mat();
+    cv.cvtColor(src, cleanGray, cv.COLOR_RGBA2GRAY, 0);
 
     const bottomRect = new cv.Rect(0, yStart, src.cols, yEnd - yStart);
-    const bottomRoi = graySrc.roi(bottomRect);
+    const bottomRoi = cleanGray.roi(bottomRect);
     const slotWidth = Math.floor(bottomRect.width / 3);
     const results = [];
 
@@ -281,6 +285,7 @@ function detectFigures(src, boardRect, graySrc) {
 
     renderDetectedFigures(src, results);
     bottomRoi.delete();
+    cleanGray.delete();
     return results.map(r => r.pattern);
 }
 
@@ -310,7 +315,7 @@ function processFigureSlot(slotRoi, slotX, yStart, w, h) {
 
     let pattern = [[1]];
     let finalRows = 1, finalCols = 1;
-    let cellSize = 75; // Default target
+    let cellSize = 50;
 
     if (foundAny) {
         const figW = maxX - minX;
@@ -320,20 +325,21 @@ function processFigureSlot(slotRoi, slotX, yStart, w, h) {
         const dims = [];
         for (let j = 0; j < contours.size(); j++) {
             const rect = cv.boundingRect(contours.get(j));
-            if (cv.contourArea(contours.get(j)) > 40) {
+            if (cv.contourArea(contours.get(j)) > 20) { // Lower noise gate for mobile
                 dims.push(rect.width, rect.height);
             }
         }
 
         dims.sort((a, b) => a - b);
-        let candidates = dims.filter(d => d > 20);
-        let baseUnit = 75;
+        let candidates = dims.filter(d => d > 12); // Capture smaller blocks on mobile
+        let baseUnit = 50;
 
         if (candidates.length > 0) {
             let smallest = candidates[0];
-            // If the smallest thing is huge, it's a solid multi-cell piece
-            if (smallest > 110) {
-                baseUnit = smallest / Math.max(1, Math.round(smallest / 75));
+            // If the smallest thing is huge, it's a solid piece. 
+            // In mobile scans, smallest unit is often around 30-50px.
+            if (smallest > 80) {
+                baseUnit = smallest / Math.max(1, Math.round(smallest / 50));
             } else {
                 baseUnit = smallest;
             }
@@ -348,28 +354,30 @@ function processFigureSlot(slotRoi, slotX, yStart, w, h) {
         pattern = Array(finalRows).fill(0).map(() => Array(finalCols).fill(0));
         for (let r = 0; r < finalRows; r++) {
             for (let c = 0; c < finalCols; c++) {
-                // Sample the center 60% of the cell
+                // Sample the center 70% of the cell
                 let cellW = figW / finalCols;
                 let cellH = figH / finalRows;
                 let sampleRect = new cv.Rect(
-                    Math.floor(minX + c * cellW + cellW * 0.2),
-                    Math.floor(minY + r * cellH + cellH * 0.2),
-                    Math.floor(cellW * 0.6),
-                    Math.floor(cellH * 0.6)
+                    Math.floor(minX + c * cellW + cellW * 0.15),
+                    Math.floor(minY + r * cellH + cellH * 0.15),
+                    Math.floor(cellW * 0.7),
+                    Math.floor(cellH * 0.7)
                 );
 
                 let roi = slotThresh.roi(sampleRect);
                 let filled = cv.countNonZero(roi);
-                if (filled / (sampleRect.width * sampleRect.height) > 0.3) {
+                // Lower fill requirement (20%) for thin pieces on mobile
+                if (filled / (sampleRect.width * sampleRect.height) > 0.2) {
                     pattern[r][c] = 1;
                 }
                 roi.delete();
             }
         }
     } else {
-        // Fallback placeholder
-        minX = Math.floor((w - 60) / 2);
-        minY = Math.floor((h - 60) / 2);
+        // Fallback placeholder logic
+        cellSize = 50;
+        minX = Math.floor((w - cellSize) / 2);
+        minY = Math.floor((h - cellSize) / 2);
     }
 
     slotThresh.delete(); contours.delete(); hier.delete();
@@ -468,10 +476,22 @@ function calculateStrategyScore(board, totalCleared) {
 
 function renderBoardGrid(cells) {
     resultGrid.innerHTML = '';
+    const overlay = document.getElementById('gridOverlay');
+    if (overlay) overlay.innerHTML = '';
+
     cells.forEach(cell => {
+        const isOccupied = cell.groupId === 1;
+        const className = `grid-cell ${isOccupied ? 'occupied' : 'empty'}`;
+
         const div = document.createElement('div');
-        div.className = `grid-cell ${cell.groupId === 1 ? 'occupied' : 'empty'}`;
+        div.className = className;
         resultGrid.appendChild(div);
+
+        if (overlay) {
+            const overDiv = document.createElement('div');
+            overDiv.className = className;
+            overlay.appendChild(overDiv);
+        }
     });
 }
 
