@@ -39,7 +39,19 @@
         <main>
             <!-- File input now in header -->
             <div class="main-content">
-                <!-- Suggestions Panel -->
+                <!-- 1. Figure Crops -->
+                <div class="panel hidden" id="figuresImagesSection">
+                    <div class="panel-header">
+                        <h2>Detected Pieces</h2>
+                    </div>
+                    <div class="panel-content">
+                        <div class="figures-container" id="figuresImagesContainer">
+                            <!-- Images of figures go here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Strategy Panel -->
                 <div class="panel hidden" id="suggestionsPanel">
                     <div class="panel-header">
                         <h2>Suggested Strategy</h2>
@@ -51,43 +63,38 @@
                     </div>
                 </div>
 
-                <!-- Left Panel: Source -->
-                <div class="panel hidden" id="previewPanel">
-                    <div class="panel-header">
-                        <h2>Scanned Image</h2>
-                    </div>
-                    <div class="panel-content">
-                        <!-- Figure Images Area ABOVE the scanned grid -->
-                        <div class="figures-section hidden" id="figuresImagesSection"
-                            style="border:none; margin-bottom:16px; width:100%;">
-                            <div class="figures-container" id="figuresImagesContainer">
-                                <!-- Images of figures go here -->
-                            </div>
+                <!-- 3. Consolidated Scan Results (Collapsible) -->
+                <div class="panel hidden" id="scanResultsSection">
+                    <div class="panel-header collapsible-header" id="scanResultsToggle">
+                        <div class="header-with-version">
+                            <h2>Scan Results</h2>
+                            <span class="version-tag" id="appVersion">v2</span>
                         </div>
-
-                        <div class="canvas-wrapper">
-                            <canvas id="sourceCanvas"></canvas>
-                            <div class="grid-overlay" id="gridOverlay"></div>
-                        </div>
+                        <span class="toggle-icon">▼</span>
                     </div>
-                </div>
-
-                <!-- Right Panel: Results (Always visible when processed) -->
-                <div class="panel hidden" id="resultsPanel">
-                    <div class="panel-header">
-                        <h2>Parsed Grid</h2>
-                    </div>
-                    <div class="panel-content">
-                        <!-- Figures Parsed Grid Area ABOVE the 8x8 grid -->
-                        <div class="figures-section hidden" id="figuresSection"
-                            style="border:none; margin-bottom:16px; width:100%;">
+                    <div class="panel-content collapsible-content" id="scanResultsContent">
+                        <!-- Top Row: Parsed Figures -->
+                        <div class="figures-section" id="figuresSection">
                             <div class="figures-container" id="figuresContainer">
                                 <!-- Parsed 3x3 grids go here -->
                             </div>
                         </div>
 
-                        <div class="mini-grid" id="resultGrid">
-                            <!-- 8x8 grid will be generated here -->
+                        <!-- Bottom Row: Parsed Grid and Scanned Image split left/right -->
+                        <div class="split-results-row">
+                            <div class="results-column" id="resultsPanel">
+                                <h3>Parsed Grid</h3>
+                                <div class="mini-grid" id="resultGrid">
+                                    <!-- 8x8 grid will be generated here -->
+                                </div>
+                            </div>
+                            <div class="results-column" id="previewPanel">
+                                <h3>Scanned Image</h3>
+                                <div class="canvas-wrapper">
+                                    <canvas id="sourceCanvas"></canvas>
+                                    <div class="grid-overlay" id="gridOverlay"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

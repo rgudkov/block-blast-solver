@@ -1,4 +1,4 @@
-const CACHE_NAME = 'grid-scout-v1';
+const CACHE_NAME = 'block-blast-solver-v2';
 const ASSETS = [
     './',
     './index.html',

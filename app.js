@@ -63,14 +63,15 @@ function startProcessing() {
 
 function resetAppUI() {
     currentImage = null;
-    previewPanel.classList.add('hidden');
-    resultsPanel.classList.add('hidden');
+    const section = document.getElementById('scanResultsSection');
+    if (section) section.classList.add('collapsed');
+
     resultGrid.innerHTML = '';
     const overlay = document.getElementById('gridOverlay');
     if (overlay) overlay.innerHTML = '';
 
 
-    const elementsToHide = ['figuresSection', 'figuresImagesSection', 'suggestionsPanel'];
+    const elementsToHide = ['figuresImagesSection', 'suggestionsPanel', 'scanResultsSection'];
     elementsToHide.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.classList.add('hidden');
@@ -182,8 +183,14 @@ function findBoardContour(contours) {
 }
 
 function finalizeUI() {
+    const section = document.getElementById('scanResultsSection');
+    if (section) {
+        section.classList.remove('hidden');
+    }
+    // Ensure the internal containers are not hidden individually
     resultsPanel.classList.remove('hidden');
-    resultsPanel.scrollIntoView({ behavior: 'smooth' });
+    previewPanel.classList.remove('hidden');
+
     uploadText.textContent = "Scan Image";
 }
 
@@ -504,7 +511,7 @@ function renderDetectedFigures(src, results) {
     figImgContainer.innerHTML = '';
 
     if (results.length > 0) {
-        sections.forEach(s => s?.classList.remove('hidden'));
+        document.getElementById('figuresImagesSection')?.classList.remove('hidden');
         results.forEach(res => {
             // Render Crop
             const canvas = document.createElement('canvas');
@@ -570,17 +577,32 @@ function renderSuggestions(sequence, piecesCount) {
             }
 
             item.innerHTML = `
-                <div class="suggestion-step">${i + 1}</div>
                 ${miniGrid.outerHTML}
-                <div class="suggestion-details">
-                    <span class="suggestion-piece-label">Place Piece ${step.pieceIdx + 1}</span>
+                <div class="suggestion-meta">
+                    <div class="suggestion-step">${i + 1}</div>
                     ${step.cleared > 0 ? `<div class="cleared-badge">✨ Clears ${step.cleared} lines!</div>` : ''}
                 </div>
             `;
             list.appendChild(item);
         });
     } else {
-        list.innerHTML = `<div class="suggestion-item" style="justify-content:center;color:var(--text-secondary);padding:24px;"><span>No solution found.</span></div>`;
+        const item = document.createElement('div');
+        item.className = 'suggestion-item no-solution';
+
+        const canvasClone = document.createElement('canvas');
+        canvasClone.className = 'suggestion-mini-grid';
+        const cloneCtx = canvasClone.getContext('2d');
+        canvasClone.width = sourceCanvas.width;
+        canvasClone.height = sourceCanvas.height;
+        cloneCtx.drawImage(sourceCanvas, 0, 0);
+
+        const meta = document.createElement('div');
+        meta.className = 'suggestion-meta';
+        meta.innerHTML = `<span class="suggestion-piece-label" style="color:var(--occupied-color); display:block; text-align:center;">No Solution Found</span>`;
+
+        item.appendChild(canvasClone);
+        item.appendChild(meta);
+        list.appendChild(item);
     }
 }
 
@@ -648,3 +670,16 @@ function applyMove(b, offsets, r, c) {
     cols.forEach(ci => { for (let ri = 0; ri < 8; ri++) nextB[ri][ci] = 0; });
     return { board: nextB, cleared: rows.length + cols.length };
 }
+
+// Initialize Collapsible Section
+document.addEventListener('DOMContentLoaded', () => {
+    const toggle = document.getElementById('scanResultsToggle');
+    const section = document.getElementById('scanResultsSection');
+    if (toggle && section) {
+        // Start collapsed
+        section.classList.add('collapsed');
+        toggle.addEventListener('click', () => {
+            section.classList.toggle('collapsed');
+        });
+    }
+});

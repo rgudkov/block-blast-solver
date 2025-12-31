@@ -116,8 +116,9 @@ header {
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-template-areas:
+        "figures-images figures-images"
         "suggestions suggestions"
-        "preview results";
+        "scan-results scan-results";
     gap: 24px;
     align-items: flex-start;
     flex: 1;
@@ -125,12 +126,12 @@ header {
     padding-bottom: 40px;
 }
 
-#previewPanel {
-    grid-area: preview;
+#figuresImagesSection {
+    grid-area: figures-images;
 }
 
-#resultsPanel {
-    grid-area: results;
+#scanResultsSection {
+    grid-area: scan-results;
 }
 
 #suggestionsPanel {
@@ -229,18 +230,32 @@ canvas {
     border: 1px solid var(--border-color);
 }
 
-/* Responsive adjustment for very small screens */
-@media (max-width: 768px) {
+@media (max-width: 768px),
+(orientation: portrait) {
 
-    /* Force side-by-side even on mobile as requested */
+    /* Force linear vertical order as requested */
     .main-content {
-        flex-direction: row;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        padding: 0 0 40px 0;
+        /* Removed horizontal padding */
+        width: 100%;
+        overflow-x: hidden;
     }
 
+    /* Override any grid area ordering if necessary, but flex-direction:column already does it if elements are in order */
+    /* Order of sections: crops, suggested strategy, parsed figures (collapsed), parsed grid, cropped grid image */
+
     .panel {
-        /* width: 50%; */
-        /* Reduce padding on mobile to fit content */
-        border-radius: var(--radius-md);
+        border-radius: 0;
+        /* Strict full width look */
+        border-left: none;
+        border-right: none;
+        width: 100%;
+        max-width: 100%;
+        box-shadow: none;
+        /* Cleaner for full width stack */
     }
 
     .panel-header {
@@ -249,28 +264,92 @@ canvas {
 
     .panel-header h2 {
         font-size: 0.8rem;
-        /* Smaller title */
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
     }
 
     .panel-content {
-        padding: 8px;
+        padding: 16px;
+        /* Content internal padding */
     }
 
-    /* On mobile, remove max-width constraint to fill the panel, 
-       but keeping them synced via width:100% of their 50% parents */
     .canvas-wrapper,
     .mini-grid {
         max-width: 100%;
-        border-radius: 4px;
+        border-radius: 8px;
     }
 
-    /* Make the grid cells smaller if needed to fit */
     .mini-grid {
-        gap: 2px;
-        padding: 4px;
+        gap: 4px;
+        padding: 8px;
+    }
+
+    /* Suggestion Item 50/50 Layout */
+    .suggestion-item {
+        flex-direction: row;
+        align-items: center;
+        padding: 12px;
+        gap: 12px;
+        border-radius: 0;
+        margin: 0 -16px;
+        /* Pull to edges of panel-content if needed or keep centered */
+        border-left: none;
+        border-right: none;
+    }
+
+    .suggestion-mini-grid {
+        width: 50% !important;
+        height: auto !important;
+        aspect-ratio: 1 / 1;
+        flex: 0 0 50%;
+    }
+
+    .suggestion-meta {
+        width: 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .suggestion-step {
+        display: flex;
+        /* Ensure it is visible */
+        width: 32px;
+        height: 32px;
+        font-size: 1rem;
+    }
+
+    .suggestion-piece-label {
+        display: none;
+    }
+
+    .split-results-row {
+        flex-direction: row;
+        gap: 16px;
+        width: 100%;
+        margin-top: 20px;
+        align-items: flex-start;
+        justify-content: space-between;
+    }
+
+    .results-column {
+        flex: 0 0 calc(50% - 8px);
+        /* Strict 50% width minus half the gap */
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .canvas-wrapper,
+    .mini-grid {
+        width: 100%;
+        max-width: 100%;
+        aspect-ratio: 1 / 1;
+        border-radius: 4px;
     }
 }
 
@@ -278,8 +357,59 @@ canvas {
 .figures-section {
     width: 100%;
     text-align: center;
-    /* Removed top margin/border as it's now inline */
     animation: slideUp 0.5s ease 0.2s backwards;
+}
+
+/* Collapsible Section Styles */
+.header-with-version {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.version-tag {
+    font-size: 0.65rem;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--text-secondary);
+    font-family: monospace;
+    font-weight: 400;
+}
+
+.collapsible-header {
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+}
+
+.collapsible-header:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.toggle-icon {
+    font-size: 0.8rem;
+    transition: transform 0.3s ease;
+    color: var(--text-secondary);
+}
+
+.collapsed .toggle-icon {
+    transform: rotate(-90deg);
+}
+
+.collapsible-content {
+    max-height: 1000px;
+    transition: max-height 0.3s ease-out, padding 0.3s ease;
+    overflow: hidden;
+}
+
+.collapsed .collapsible-content {
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    border: none;
 }
 
 .figures-section h3 {
@@ -365,6 +495,46 @@ canvas {
 .grid-cell.empty {
     background-color: var(--empty-color);
     opacity: 0.15;
+}
+
+.split-results-row {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    width: 100%;
+    margin-top: 20px;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+.results-column {
+    flex: 0 0 calc(50% - 8px);
+    /* Strict 50% width minus half the gap */
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.results-column h3 {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-align: center;
+}
+
+.canvas-wrapper,
+.mini-grid {
+    width: 100%;
+    max-width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 4px;
+}
+
+.mini-grid {
+    gap: 2px;
+    padding: 4px;
 }
 
 .grid-overlay .grid-cell {
@@ -501,65 +671,4 @@ canvas {
     font-weight: 700;
     text-transform: uppercase;
     margin-top: 2px;
-}
-
-@media (max-width: 768px),
-(orientation: portrait) {
-    .app-container {
-        padding: 0;
-        height: auto;
-        gap: 12px;
-    }
-
-    header {
-        margin: 0;
-        padding: 12px 16px;
-        border-radius: 0;
-    }
-
-    .main-content {
-        gap: 16px;
-        padding: 0 12px 40px 12px;
-        grid-template-columns: 1fr;
-        grid-template-areas:
-            "suggestions"
-            "preview"
-            "results";
-    }
-
-    .panel {
-        border-radius: 8px;
-        border-left: none;
-        border-right: none;
-    }
-
-    .panel-header {
-        padding: 8px 12px;
-    }
-
-    .panel-content {
-        padding: 4px;
-    }
-
-    .canvas-wrapper,
-    .mini-grid {
-        max-width: none;
-        box-shadow: none;
-        border: none;
-    }
-
-    .suggestion-item {
-        gap: 8px;
-        padding: 8px;
-    }
-
-    .suggestion-mini-grid {
-        width: 70px;
-        height: 70px;
-    }
-
-    #figuresSection,
-    #figuresImagesSection {
-        padding: 0 8px;
-    }
 }
